@@ -1,0 +1,13 @@
+[programs.localnet]
+cultures = "CJLQC725532PSGMMANkSviJvmz7wNRxoar6MDwi8V3Kt"
+permissionless_auction = "83PHTTiss3tkzVzEUgYWF7CgYEyg2729o3LXKkatkiX8"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "/Users/nathanshirley/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
