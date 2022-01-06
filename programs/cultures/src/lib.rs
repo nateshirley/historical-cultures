@@ -8,6 +8,9 @@ pub mod cultures {
     pub fn initialize(ctx: Context<Initialize>, _culture_bump: u8) -> ProgramResult {
         Ok(())
     }
+    pub fn come_here(ctx: Context<ComeHere>) -> ProgramResult {
+        Ok(())
+    }
 }
 
 const CULTURE_SEED: &[u8] = b"culture";
@@ -24,6 +27,11 @@ pub struct Initialize<'info> {
     )]
     culture: Account<'info, Culture>,
     system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct ComeHere<'info> {
+    pub caller: AccountInfo<'info>,
 }
 
 #[account]
