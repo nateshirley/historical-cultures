@@ -68,10 +68,9 @@ pub fn handler(ctx: Context<CreateCulture>, _culture_bump: u8, name: String) -> 
     ctx.accounts.culture.collection = ctx.accounts.collection.key();
     ctx.accounts.culture.creator_mint = ctx.accounts.creator_mint.key();
     ctx.accounts.culture.audience_mint = ctx.accounts.audience_mint.key();
-    // ctx.accounts.culture.stake_pool = ctx.accounts.stake_pool.key();
-    // ctx.accounts.culture.redemption_mint = ctx.accounts.redemption_mint.key();
     //leave collection for now and come back to it
     //but should probably do it in a separate, collection factory program
+    //set mint authority on the collection to the program, should be good to go
     //i'll do all the staking/posts/voting first
     Ok(())
 }
