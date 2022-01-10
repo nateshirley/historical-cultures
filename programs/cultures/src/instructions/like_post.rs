@@ -6,7 +6,7 @@ use {
 
 #[derive(Accounts)]
 #[instruction(like_attr_bump: u8)]
-pub struct SubmitLike<'info> {
+pub struct LikePost<'info> {
     culture: Account<'info, Culture>,
     liker: Signer<'info>,
     #[account(
@@ -24,13 +24,13 @@ pub struct SubmitLike<'info> {
     #[account(
         mut,
         constraint = poster_membership.culture == culture.key(),
-        constraint = poster_membership.member == post.member
+        constraint = poster_membership.member == post.poster
     )]
     poster_membership: Account<'info, Membership>,
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<SubmitLike>, like_attr_bump: u8) -> ProgramResult {
+pub fn handler(ctx: Context<LikePost>, like_attr_bump: u8) -> ProgramResult {
     //make like account that stays alive for 10 days
     solana_program::program::invoke_signed(
         &solana_program::system_instruction::create_account(

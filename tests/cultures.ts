@@ -42,9 +42,9 @@ describe("cultures", () => {
   let cultureInit = true;
   let createMembershipAcct = true;
   let increaseCreatorStake = true;
-  let decreaseCreatorStake = false;
-  let increaseAudienceStake = false;
-  let decreaseAudienceStake = false;
+  let decreaseCreatorStake = true;
+  let increaseAudienceStake = true;
+  let decreaseAudienceStake = true;
   let submitLike = true;
 
   it("setup", async () => {
@@ -298,10 +298,10 @@ describe("cultures", () => {
 
   it("submit post", async () => {
     let body = "baby's first post 😘";
-    let tx = await Cultures.rpc.submitPost(calculatePostSize(body), body, {
+    let tx = await Cultures.rpc.createPost(calculatePostSize(body), body, {
       accounts: {
         culture: testCulture.address,
-        member: provider.wallet.publicKey,
+        poster: provider.wallet.publicKey,
         membership: membership.address,
         post: post.publicKey,
         clock: web3.SYSVAR_CLOCK_PUBKEY,
@@ -321,7 +321,7 @@ describe("cultures", () => {
         membership.address,
         post.publicKey
       );
-      const tx = await Cultures.rpc.submitLike(likeAttr.bump, {
+      const tx = await Cultures.rpc.likePost(likeAttr.bump, {
         accounts: {
           culture: testCulture.address,
           liker: provider.wallet.publicKey,

@@ -49,14 +49,33 @@ pub mod cultures {
         change_audience_stake::handler(ctx, membership_bump, audience_stake_pool_bump, amount)
     }
 
-    pub fn submit_like(ctx: Context<SubmitLike>, like_attr_bump: u8) -> ProgramResult {
-        submit_like::handler(ctx, like_attr_bump)
+    pub fn create_post(ctx: Context<CreatePost>, space: u32, body: String) -> ProgramResult {
+        create_post::handler(ctx, space, body)
     }
 
-    pub fn submit_post(ctx: Context<SubmitPost>, space: u32, body: String) -> ProgramResult {
-        submit_post::handler(ctx, space, body)
+    pub fn like_post(ctx: Context<LikePost>, like_attr_bump: u8) -> ProgramResult {
+        like_post::handler(ctx, like_attr_bump)
+    }
+
+    pub fn mint_post(ctx: Context<MintPost>) -> ProgramResult {
+        Ok(())
     }
 }
+
+#[derive(Accounts)]
+pub struct MintPost<'info> {
+    poster: Signer<'info>,
+}
+
+/*
+
+some shit i need to do
+- how to delete old posts
+- minting
+- collection factory
+- how to determine number of points required to mint
+
+*/
 
 //if i had better system for deleting old accounts, i could just use the timestamp and nothing else
 //figure out how to delete
