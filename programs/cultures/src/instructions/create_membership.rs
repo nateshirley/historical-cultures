@@ -18,7 +18,7 @@ pub struct CreateMembership<'info> {
 pub fn handler(ctx: Context<CreateMembership>, membership_bump: u8) -> ProgramResult {
     //config membership
     ctx.accounts.membership.culture = ctx.accounts.culture.key();
-    ctx.accounts.membership.authority = ctx.accounts.new_member.key();
+    ctx.accounts.membership.member = ctx.accounts.new_member.key();
     ctx.accounts.membership.bump = membership_bump;
     Ok(())
 }
