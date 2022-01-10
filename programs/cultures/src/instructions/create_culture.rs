@@ -9,7 +9,7 @@ pub struct CreateCulture<'info> {
         seeds = [CULTURE_SEED, name.clone().to_seed_format().as_bytes()],
         bump = culture_bump,
         payer = payer,
-        space = 161, //could also do this custom if i wanted based on length of the string. prob not worth it
+        space = 165, //could also do this custom if i wanted based on length of the string. prob not worth it
     )]
     culture: Account<'info, Culture>,
     collection: UncheckedAccount<'info>,

@@ -13,7 +13,7 @@ pub struct ChangeAudienceStake<'info> {
         mut,
         seeds = [MEMBERSHIP_SEED, culture.key().as_ref(), member.key().as_ref()],
         bump = membership_bump,
-        constraint = membership.authority == member.key()
+        constraint = membership.member == member.key()
     )]
     membership: Account<'info, Membership>,
     #[account(

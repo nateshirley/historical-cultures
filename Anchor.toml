@@ -1,6 +1,5 @@
 [programs.localnet]
-cultures = "CJLQC725532PSGMMANkSviJvmz7wNRxoar6MDwi8V3Kt"
-permissionless_auction = "83PHTTiss3tkzVzEUgYWF7CgYEyg2729o3LXKkatkiX8"
+cultures = "5prqgWu5iSVS8DvYruAFFCNQjAbg1RvojMCRL6dPSPye"
 
 [registry]
 url = "https://anchor.projectserum.com"

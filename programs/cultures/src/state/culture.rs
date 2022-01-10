@@ -12,3 +12,6 @@ pub struct Culture {
     pub audience_count: u32,
     pub bump: u8,
 }
+//8 + str + (32 * 4) + 4 + 4 + 1
+// = 145 + str
+//str = 20 (16chars + 4 setup)
