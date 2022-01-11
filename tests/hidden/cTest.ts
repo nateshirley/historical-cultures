@@ -2,12 +2,12 @@ import * as anchor from "@project-serum/anchor";
 import * as web3 from "@solana/web3.js";
 import { Token, TOKEN_PROGRAM_ID, MintLayout } from "@solana/spl-token";
 import { BN, Program } from "@project-serum/anchor";
-import { Cultures } from "../target/types/cultures";
+import { Cultures } from "../../target/types/cultures";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   createAssociatedTokenAccountInstruction,
-  getAssociatedTokenAccountAddress,
-} from "./helpers/tokenHelpers";
+  findAssociatedTokenAccount,
+} from "../helpers/tokenHelpers";
 
 declare var TextEncoder: any;
 
@@ -29,7 +29,7 @@ describe("cultures", () => {
   let testName = "test";
   let membershipMint = web3.Keypair.generate();
   let membership: Pda;
-  let creatorTokenAccount: PublicKey;
+  let creatorTokenAccount: Pda;
   let payer = web3.Keypair.generate();
   let creatorStakePool: Pda;
   let creatorRedemptionMint: Pda;
@@ -62,7 +62,7 @@ describe("cultures", () => {
       TOKEN_PROGRAM_ID,
       payer
     );
-    creatorTokenAccount = await getAssociatedTokenAccountAddress(
+    creatorTokenAccount = await findAssociatedTokenAccount(
       provider.wallet.publicKey,
       membershipMint.publicKey
     );
@@ -106,7 +106,7 @@ describe("cultures", () => {
         ),
         createAssociatedTokenAccountInstruction(
           membershipMint.publicKey,
-          creatorTokenAccount,
+          creatorTokenAccount.address,
           provider.wallet.publicKey,
           payer.publicKey
         )
@@ -116,13 +116,20 @@ describe("cultures", () => {
         membershipMint,
       ]);
 
-      await MembershipToken.mintTo(creatorTokenAccount, payer, [], 10000);
+      await MembershipToken.mintTo(
+        creatorTokenAccount.address,
+        payer,
+        [],
+        10000
+      );
       //if i want the balances to match i need to match the mint decimals with the token created
 
-      let acctInfo = await MembershipToken.getAccountInfo(creatorTokenAccount);
+      let acctInfo = await MembershipToken.getAccountInfo(
+        creatorTokenAccount.address
+      );
       console.log(acctInfo);
       let fetched = await provider.connection.getTokenAccountBalance(
-        creatorTokenAccount
+        creatorTokenAccount.address
       );
       console.log(fetched);
     });
@@ -203,7 +210,7 @@ describe("cultures", () => {
       );
 
       let creatorAcct = await provider.connection.getTokenAccountBalance(
-        creatorTokenAccount
+        creatorTokenAccount.address
       );
       console.log(creatorAcct);
       let membershipp = await Cultures.account.membership.fetch(
@@ -234,7 +241,7 @@ describe("cultures", () => {
       );
 
       let creatorAcct = await provider.connection.getTokenAccountBalance(
-        creatorTokenAccount
+        creatorTokenAccount.address
       );
       console.log(creatorAcct);
       let membershipp = await Cultures.account.membership.fetch(
@@ -265,7 +272,7 @@ describe("cultures", () => {
       );
 
       let creatorAcct = await provider.connection.getTokenAccountBalance(
-        creatorTokenAccount
+        creatorTokenAccount.address
       );
       console.log(creatorAcct);
       let membershipp = await Cultures.account.membership.fetch(
@@ -296,7 +303,7 @@ describe("cultures", () => {
       );
 
       let creatorAcct = await provider.connection.getTokenAccountBalance(
-        creatorTokenAccount
+        creatorTokenAccount.address
       );
       console.log(creatorAcct);
       let membershipp = await Cultures.account.membership.fetch(

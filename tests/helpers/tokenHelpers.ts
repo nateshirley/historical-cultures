@@ -12,6 +12,11 @@ const ASSOCIATED_PROGRAM_ID = new PublicKey(
   "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
 );
 
+interface Pda {
+  address: PublicKey;
+  bump: number;
+}
+
 export const createAssociatedTokenAccountInstruction = (
   mint: PublicKey,
   associatedAccount: PublicKey,
@@ -35,17 +40,20 @@ export const createAssociatedTokenAccountInstruction = (
   });
 };
 
-export const getAssociatedTokenAccountAddress = async (
+export const findAssociatedTokenAccount = async (
   owner: PublicKey,
   mint: PublicKey
 ) => {
   let associatedProgramId = new PublicKey(
     "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
   );
-  return (
-    await PublicKey.findProgramAddress(
-      [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-      associatedProgramId
-    )
-  )[0];
+  return PublicKey.findProgramAddress(
+    [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    associatedProgramId
+  ).then(([address, bump]) => {
+    return {
+      address: address,
+      bump: bump,
+    };
+  });
 };
