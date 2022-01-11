@@ -5,8 +5,10 @@ mod instructions;
 pub mod state;
 pub mod utils;
 
+use anchor_spl::token;
 use instructions::*;
-
+use state::*;
+use utils::*;
 #[program]
 pub mod cultures {
     use super::*;
@@ -57,28 +59,26 @@ pub mod cultures {
         like_post::handler(ctx, like_attr_bump)
     }
 
-    pub fn mint_post(ctx: Context<MintPost>) -> ProgramResult {
-        Ok(())
+    pub fn mint_post(
+        ctx: Context<MintPost>,
+        _creator_stake_pool_bump: u8,
+        _audience_stake_pool_bump: u8,
+    ) -> ProgramResult {
+        mint_post::handler(ctx)
     }
 }
 
-#[derive(Accounts)]
-pub struct MintPost<'info> {
-    poster: Signer<'info>,
-}
-
 /*
-
 some shit i need to do
 - how to delete old posts
 - minting
 - collection factory
-- how to determine number of points required to mint
-
 */
 
-//if i had better system for deleting old accounts, i could just use the timestamp and nothing else
-//figure out how to delete
+/*
+why do u even need the posts on chain?
 
-//so here we are just creating a v small account to make sure that posts can't be double liked
-//and then incrementing the score of the post
+main reason is u need to keep track of whose votes are staked into what posts
+if u don't do it on-chain, u can't really verify whose tokens are on what posts
+still relatively low risk actually, bc the posts are just getting minted for free, no value locked really
+*/

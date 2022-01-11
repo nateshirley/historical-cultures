@@ -12,6 +12,15 @@ pub struct Culture {
     pub audience_count: u32,
     pub bump: u8,
 }
+
+pub trait Symmetry {
+    fn is_symmetrical(&self) -> bool;
+}
+impl Symmetry for Culture {
+    fn is_symmetrical(&self) -> bool {
+        self.creator_mint == self.audience_mint
+    }
+}
 //8 + str + (32 * 4) + 4 + 4 + 1
 // = 145 + str
 //str = 20 (16chars + 4 setup)

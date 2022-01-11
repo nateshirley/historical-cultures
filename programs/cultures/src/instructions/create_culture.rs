@@ -3,7 +3,6 @@ use {crate::state::*, crate::utils::*, anchor_lang::prelude::*, anchor_spl::toke
 #[derive(Accounts)]
 #[instruction(culture_bump: u8, name: String)]
 pub struct CreateCulture<'info> {
-    payer: Signer<'info>,
     #[account(
         init,
         seeds = [CULTURE_SEED, name.clone().to_seed_format().as_bytes()],
@@ -12,6 +11,7 @@ pub struct CreateCulture<'info> {
         space = 165, //could also do this custom if i wanted based on length of the string. prob not worth it
     )]
     culture: Account<'info, Culture>,
+    payer: Signer<'info>,
     collection: UncheckedAccount<'info>,
     creator_mint: Box<Account<'info, token::Mint>>,
     #[account(
@@ -28,7 +28,7 @@ pub struct CreateCulture<'info> {
         seeds = [C_REDEMPTION_SEED, culture.key().as_ref()],
         bump,
         payer = payer,
-        mint::decimals = 0,
+        mint::decimals = creator_mint.decimals,
         mint::authority = stake_authority,
         mint::freeze_authority = stake_authority,
     )]
@@ -48,7 +48,7 @@ pub struct CreateCulture<'info> {
         seeds = [A_REDEMPTION_SEED, culture.key().as_ref()],
         bump,
         payer = payer,
-        mint::decimals = 0,
+        mint::decimals = audience_mint.decimals,
         mint::authority = stake_authority,
         mint::freeze_authority = stake_authority,
     )]

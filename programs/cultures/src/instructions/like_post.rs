@@ -19,7 +19,10 @@ pub struct LikePost<'info> {
         bump = like_attr_bump
     )]
     like_attribution: AccountInfo<'info>,
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = post.culture == culture.key()
+    )]
     post: Account<'info, Post>,
     #[account(
         mut,

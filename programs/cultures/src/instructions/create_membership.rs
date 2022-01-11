@@ -3,8 +3,8 @@ use {crate::state::*, crate::utils::*, anchor_lang::prelude::*};
 #[derive(Accounts)]
 #[instruction(membership_bump: u8)]
 pub struct CreateMembership<'info> {
-    new_member: Signer<'info>,
     culture: Account<'info, Culture>,
+    new_member: Signer<'info>,
     #[account(
         init_if_needed,
         seeds = [MEMBERSHIP_SEED, culture.key().as_ref(), new_member.key().as_ref()],

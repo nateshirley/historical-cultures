@@ -4,11 +4,12 @@ use {crate::state::*, crate::utils::*, anchor_lang::prelude::*, anchor_spl::toke
 #[derive(Accounts)]
 #[instruction(membership_bump: u8, audience_stake_pool_bump: u8)]
 pub struct ChangeAudienceStake<'info> {
-    member: Signer<'info>,
     // #[account(
     //     constraint = culture.creator_mint != culture.audience_mint
     // )]
+    #[account(mut)]
     culture: Account<'info, Culture>,
+    member: Signer<'info>,
     #[account(
         mut,
         seeds = [MEMBERSHIP_SEED, culture.key().as_ref(), member.key().as_ref()],
@@ -24,7 +25,7 @@ pub struct ChangeAudienceStake<'info> {
     audience_token_account: Account<'info, token::TokenAccount>,
     #[account(
         mut,
-        constraint = audience_stake_pool.key() == find_audience_stake_pool(culture.key(), audience_stake_pool_bump)
+        address = find_audience_stake_pool(culture.key(), audience_stake_pool_bump)
     )]
     audience_stake_pool: Account<'info, token::TokenAccount>,
     #[account(

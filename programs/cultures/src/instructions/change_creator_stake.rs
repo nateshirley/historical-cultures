@@ -4,8 +4,9 @@ use {crate::state::*, crate::utils::*, anchor_lang::prelude::*, anchor_spl::toke
 #[derive(Accounts)]
 #[instruction(membership_bump: u8, creator_stake_pool_bump: u8)]
 pub struct ChangeCreatorStake<'info> {
-    member: Signer<'info>,
+    #[account(mut)]
     culture: Account<'info, Culture>,
+    member: Signer<'info>,
     #[account(
         mut,
         seeds = [MEMBERSHIP_SEED, culture.key().as_ref(), member.key().as_ref()],
@@ -21,7 +22,7 @@ pub struct ChangeCreatorStake<'info> {
     creator_token_account: Account<'info, token::TokenAccount>,
     #[account(
         mut,
-        constraint = creator_stake_pool.key() == find_creator_stake_pool(culture.key(), creator_stake_pool_bump)
+        address = find_creator_stake_pool(culture.key(), creator_stake_pool_bump)
     )]
     creator_stake_pool: Account<'info, token::TokenAccount>,
     #[account(
@@ -61,8 +62,8 @@ pub fn handler(
     }
     //reflect changes in membership account
     ctx.accounts.membership.creator_stake = new_creator_stake;
-    //if it's a symmetrical culture, edit audience counts as well
-    if ctx.accounts.culture.creator_mint == ctx.accounts.culture.audience_mint {
+    //if it's a symmetrical culture (all audience are creators) edit audience counts as well
+    if ctx.accounts.culture.is_symmetrical() {
         ctx.accounts.membership.audience_stake = ctx.accounts.membership.creator_stake;
         ctx.accounts.culture.audience_count = ctx.accounts.culture.creator_count;
     }

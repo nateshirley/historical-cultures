@@ -42,10 +42,12 @@ describe("cultures", () => {
   let cultureInit = true;
   let createMembershipAcct = true;
   let increaseCreatorStake = true;
-  let decreaseCreatorStake = true;
-  let increaseAudienceStake = true;
-  let decreaseAudienceStake = true;
+  let decreaseCreatorStake = false;
+  let increaseAudienceStake = false;
+  let decreaseAudienceStake = false;
+  let createPost = true;
   let submitLike = true;
+  let mintPost = true;
 
   it("setup", async () => {
     testCulture = await findCulture(testName);
@@ -98,7 +100,7 @@ describe("cultures", () => {
         Token.createInitMintInstruction(
           TOKEN_PROGRAM_ID,
           membershipMint.publicKey,
-          0,
+          4,
           payer.publicKey,
           null
         ),
@@ -114,7 +116,15 @@ describe("cultures", () => {
         membershipMint,
       ]);
 
-      MembershipToken.mintTo(creatorTokenAccount, payer, [], 100);
+      await MembershipToken.mintTo(creatorTokenAccount, payer, [], 10000);
+      //if i want the balances to match i need to match the mint decimals with the token created
+
+      let acctInfo = await MembershipToken.getAccountInfo(creatorTokenAccount);
+      console.log(acctInfo);
+      let fetched = await provider.connection.getTokenAccountBalance(
+        creatorTokenAccount
+      );
+      console.log(fetched);
     });
   }
 
@@ -136,8 +146,8 @@ describe("cultures", () => {
 
       const tx = await Cultures.rpc.createCulture(testCulture.bump, testName, {
         accounts: {
-          payer: provider.wallet.publicKey,
           culture: testCulture.address,
+          payer: provider.wallet.publicKey,
           collection: testCollection.publicKey,
           creatorMint: membershipMint.publicKey,
           creatorStakePool: creatorStakePool.address,
@@ -163,8 +173,8 @@ describe("cultures", () => {
     it("create membership account", async () => {
       const tx = await Cultures.rpc.createMembership(membership.bump, {
         accounts: {
-          newMember: provider.wallet.publicKey,
           culture: testCulture.address,
+          newMember: provider.wallet.publicKey,
           membership: membership.address,
           systemProgram: SystemProgram.programId,
         },
@@ -180,8 +190,8 @@ describe("cultures", () => {
         new BN(50),
         {
           accounts: {
-            member: provider.wallet.publicKey,
             culture: testCulture.address,
+            member: provider.wallet.publicKey,
             membership: membership.address,
             creatorTokenAccount: creatorTokenAccount,
             creatorStakePool: creatorStakePool.address,
@@ -211,8 +221,8 @@ describe("cultures", () => {
         new BN(-20),
         {
           accounts: {
-            member: provider.wallet.publicKey,
             culture: testCulture.address,
+            member: provider.wallet.publicKey,
             membership: membership.address,
             creatorTokenAccount: creatorTokenAccount,
             creatorStakePool: creatorStakePool.address,
@@ -242,8 +252,8 @@ describe("cultures", () => {
         new BN(20),
         {
           accounts: {
-            member: provider.wallet.publicKey,
             culture: testCulture.address,
+            member: provider.wallet.publicKey,
             membership: membership.address,
             audienceTokenAccount: creatorTokenAccount,
             audienceStakePool: audienceStakePool.address,
@@ -273,8 +283,8 @@ describe("cultures", () => {
         new BN(-10),
         {
           accounts: {
-            member: provider.wallet.publicKey,
             culture: testCulture.address,
+            member: provider.wallet.publicKey,
             membership: membership.address,
             audienceTokenAccount: creatorTokenAccount,
             audienceStakePool: audienceStakePool.address,
@@ -296,24 +306,26 @@ describe("cultures", () => {
     });
   }
 
-  it("submit post", async () => {
-    let body = "baby's first post 😘";
-    let tx = await Cultures.rpc.createPost(calculatePostSize(body), body, {
-      accounts: {
-        culture: testCulture.address,
-        poster: provider.wallet.publicKey,
-        membership: membership.address,
-        post: post.publicKey,
-        clock: web3.SYSVAR_CLOCK_PUBKEY,
-        systemProgram: SystemProgram.programId,
-      },
-      signers: [post],
-    });
+  if (createPost) {
+    it("submit post", async () => {
+      let body = "baby's first post 😘";
+      let tx = await Cultures.rpc.createPost(calculatePostSize(body), body, {
+        accounts: {
+          culture: testCulture.address,
+          poster: provider.wallet.publicKey,
+          membership: membership.address,
+          post: post.publicKey,
+          clock: web3.SYSVAR_CLOCK_PUBKEY,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [post],
+      });
 
-    let postInfo = await Cultures.account.post.fetch(post.publicKey);
-    console.log(postInfo);
-    calculatePostSize(body);
-  });
+      let postInfo = await Cultures.account.post.fetch(post.publicKey);
+      console.log(postInfo);
+      calculatePostSize(body);
+    });
+  }
 
   if (submitLike) {
     it("submit like", async () => {
@@ -335,6 +347,27 @@ describe("cultures", () => {
 
       let postInfo = await Cultures.account.post.fetch(post.publicKey);
       console.log("post score,   ", postInfo.score.toNumber());
+    });
+  }
+
+  if (mintPost) {
+    it("mint post", async () => {
+      let cult = await Cultures.account.culture.fetch(testCulture.address);
+      console.log(cult);
+      const tx = await Cultures.rpc.mintPost(
+        creatorStakePool.bump,
+        audienceStakePool.bump,
+        {
+          accounts: {
+            culture: testCulture.address,
+            poster: provider.wallet.publicKey,
+            post: post.publicKey,
+            membership: membership.address,
+            creatorStakePool: creatorStakePool.address,
+            audienceStakePool: audienceStakePool.address,
+          },
+        }
+      );
     });
   }
 
