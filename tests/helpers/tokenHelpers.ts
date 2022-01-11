@@ -8,10 +8,12 @@ import {
 import * as SPLToken from "@solana/spl-token";
 const { TOKEN_PROGRAM_ID } = SPLToken;
 
-const ASSOCIATED_PROGRAM_ID = new PublicKey(
+export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey(
   "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
 );
-
+export const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+);
 interface Pda {
   address: PublicKey;
   bump: number;
@@ -35,7 +37,7 @@ export const createAssociatedTokenAccountInstruction = (
   ];
   return new TransactionInstruction({
     keys,
-    programId: ASSOCIATED_PROGRAM_ID,
+    programId: ASSOCIATED_TOKEN_PROGRAM_ID,
     data,
   });
 };
@@ -44,12 +46,40 @@ export const findAssociatedTokenAccount = async (
   owner: PublicKey,
   mint: PublicKey
 ) => {
-  let associatedProgramId = new PublicKey(
-    "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-  );
   return PublicKey.findProgramAddress(
     [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    associatedProgramId
+    ASSOCIATED_TOKEN_PROGRAM_ID
+  ).then(([address, bump]) => {
+    return {
+      address: address,
+      bump: bump,
+    };
+  });
+};
+export const findTokenMetadata = async (mintPubkey: PublicKey) => {
+  return await PublicKey.findProgramAddress(
+    [
+      Buffer.from("metadata"),
+      TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+      mintPubkey.toBuffer(),
+    ],
+    TOKEN_METADATA_PROGRAM_ID
+  ).then(([address, bump]) => {
+    return {
+      address: address,
+      bump: bump,
+    };
+  });
+};
+export const findMasterEdition = async (mintPubkey: PublicKey) => {
+  return await PublicKey.findProgramAddress(
+    [
+      Buffer.from("metadata"),
+      TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+      mintPubkey.toBuffer(),
+      Buffer.from("edition"),
+    ],
+    TOKEN_METADATA_PROGRAM_ID
   ).then(([address, bump]) => {
     return {
       address: address,

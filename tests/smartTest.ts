@@ -8,12 +8,14 @@ import {
 } from "@solana/spl-token";
 import { BN, Program } from "@project-serum/anchor";
 import { Cultures } from "../target/types/cultures";
-import { CollectionFactory } from "../target/types/collection_factory";
+import { SmartCollections } from "../target/types/smart_collections";
 
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
-  createAssociatedTokenAccountInstruction,
+  findTokenMetadata,
   findAssociatedTokenAccount,
+  findMasterEdition,
+  TOKEN_METADATA_PROGRAM_ID,
 } from "./helpers/tokenHelpers";
 
 declare var TextEncoder: any;
@@ -24,45 +26,64 @@ describe("cultures", () => {
   anchor.setProvider(provider);
   const anyAnchor: any = anchor;
   const Cultures = anyAnchor.workspace.Cultures as Program<Cultures>;
-  const CollectionFactory = anyAnchor.workspace
-    .CollectionFactory as Program<CollectionFactory>;
+  const SmartCollections = anyAnchor.workspace
+    .SmartCollections as Program<SmartCollections>;
 
   interface Pda {
     address: web3.PublicKey;
     bump: number;
   }
   let collection: Pda;
-  let factoryAuthority: Pda;
+  let smartAuthority: Pda;
+  let collectionMetadata: Pda;
+  let collectionMasterEdition: Pda;
+  let collectionMint = web3.Keypair.generate();
 
   it("initialize", async () => {
-    collection = await findCollection("test");
-    factoryAuthority = await findCollectionFactoryAuthority();
-
-    const tx = await CollectionFactory.rpc.initialize(factoryAuthority.bump, {
+    collection = await findSmartCollection("test");
+    smartAuthority = await findSmartCollectionsAuthority();
+    collectionMetadata = await findTokenMetadata(collectionMint.publicKey);
+    collectionMasterEdition = await findMasterEdition(collectionMint.publicKey);
+    const tx = await SmartCollections.rpc.initialize(smartAuthority.bump, {
       accounts: {
         initializer: provider.wallet.publicKey,
-        factoryAuthority: factoryAuthority.address,
+        smartAuthority: smartAuthority.address,
         systemProgram: SystemProgram.programId,
       },
     });
   });
 
   it("create collection", async () => {
-    const tx = await CollectionFactory.rpc.createCollection(
+    let collectionTokenAccount = await findAssociatedTokenAccount(
+      smartAuthority.address,
+      collectionMint.publicKey
+    );
+    const tx = await SmartCollections.rpc.create(
       "test",
       collection.bump,
       300,
       "T",
+      "https://nateshirley.github.io/data/default.json",
       provider.wallet.publicKey,
       10,
       [{ address: provider.wallet.publicKey, share: 100 }],
       100,
       {
         accounts: {
-          creator: provider.wallet.publicKey,
-          collection: collection.address,
+          payer: provider.wallet.publicKey,
+          smartCollection: collection.address,
+          collectionMint: collectionMint.publicKey,
+          collectionMetadata: collectionMetadata.address,
+          collectionMasterEdition: collectionMasterEdition.address,
+          collectionTokenAccount: collectionTokenAccount.address,
+          smartAuthority: smartAuthority.address,
+          rent: web3.SYSVAR_RENT_PUBKEY,
+          tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         },
+        signers: [collectionMint],
       }
     );
   });
@@ -73,15 +94,15 @@ describe("cultures", () => {
       provider.wallet.publicKey,
       itemMint.publicKey
     );
-    const tx = await CollectionFactory.rpc.mintIntoCollection({
+    const tx = await SmartCollections.rpc.mintInto({
       accounts: {
-        collection: collection.address,
+        smartCollection: collection.address,
         itemMint: itemMint.publicKey,
         payer: provider.wallet.publicKey,
         receiver: provider.wallet.publicKey,
         receiverTokenAccount: itemTokenAccount.address,
         collectionMintAuthority: provider.wallet.publicKey,
-        factoryAuthority: factoryAuthority.address,
+        smartAuthority: smartAuthority.address,
         rent: web3.SYSVAR_RENT_PUBKEY,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -90,7 +111,7 @@ describe("cultures", () => {
       signers: [itemMint],
     });
 
-    let newCollection = await CollectionFactory.account.collection.fetch(
+    let newCollection = await SmartCollections.account.smartCollection.fetch(
       collection.address
     );
     console.log(newCollection);
@@ -100,10 +121,10 @@ describe("cultures", () => {
     console.log(tA);
   });
 
-  const findCollectionFactoryAuthority = async () => {
+  const findSmartCollectionsAuthority = async () => {
     return PublicKey.findProgramAddress(
-      [anchor.utils.bytes.utf8.encode("f_auth")],
-      CollectionFactory.programId
+      [anchor.utils.bytes.utf8.encode("s_auth")],
+      SmartCollections.programId
     ).then(([address, bump]) => {
       return {
         address: address,
@@ -111,13 +132,13 @@ describe("cultures", () => {
       };
     });
   };
-  const findCollection = async (name: string) => {
+  const findSmartCollection = async (name: string) => {
     return PublicKey.findProgramAddress(
       [
         anchor.utils.bytes.utf8.encode("collection"),
         anchor.utils.bytes.utf8.encode(name),
       ],
-      CollectionFactory.programId
+      SmartCollections.programId
     ).then(([address, bump]) => {
       return {
         address: address,
