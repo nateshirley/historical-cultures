@@ -7,6 +7,7 @@ pub struct SmartCollection {
     pub name: String,
     pub symbol: String,
     pub mint_authority: Option<Pubkey>,
+    pub update_authority: Option<Pubkey>,
     pub supply: u32,
     pub max_supply: Option<u32>,
     pub seller_fee_basis_points: u16,
@@ -14,7 +15,7 @@ pub struct SmartCollection {
     pub bump: u8,
 }
 
-#[derive(Default, Clone, AnchorSerialize, AnchorDeserialize)]
+#[derive(Default, Clone, Copy, AnchorSerialize, AnchorDeserialize)]
 pub struct Creator {
     pub address: Pubkey,
     // In full percentage points

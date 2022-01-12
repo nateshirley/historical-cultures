@@ -58,7 +58,7 @@ describe("cultures", () => {
       smartAuthority.address,
       collectionMint.publicKey
     );
-    const tx = await SmartCollections.rpc.create(
+    const tx = await SmartCollections.rpc.createCollection(
       "test",
       collection.bump,
       300,
@@ -94,22 +94,32 @@ describe("cultures", () => {
       provider.wallet.publicKey,
       itemMint.publicKey
     );
-    const tx = await SmartCollections.rpc.mintInto({
-      accounts: {
-        smartCollection: collection.address,
-        itemMint: itemMint.publicKey,
-        payer: provider.wallet.publicKey,
-        receiver: provider.wallet.publicKey,
-        receiverTokenAccount: itemTokenAccount.address,
-        collectionMintAuthority: provider.wallet.publicKey,
-        smartAuthority: smartAuthority.address,
-        rent: web3.SYSVAR_RENT_PUBKEY,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-      },
-      signers: [itemMint],
-    });
+    let itemMetadata = await findTokenMetadata(itemMint.publicKey);
+    let itemMasterEdition = await findMasterEdition(itemMint.publicKey);
+    const tx = await SmartCollections.rpc.mintItemIntoCollection(
+      null,
+      null,
+      "gooogle.com",
+      {
+        accounts: {
+          smartCollection: collection.address,
+          itemMint: itemMint.publicKey,
+          itemMetadata: itemMetadata.address,
+          itemMasterEdition: itemMasterEdition.address,
+          payer: provider.wallet.publicKey,
+          receiver: provider.wallet.publicKey,
+          receiverTokenAccount: itemTokenAccount.address,
+          collectionMintAuthority: provider.wallet.publicKey,
+          smartAuthority: smartAuthority.address,
+          rent: web3.SYSVAR_RENT_PUBKEY,
+          tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [itemMint],
+      }
+    );
 
     let newCollection = await SmartCollections.account.smartCollection.fetch(
       collection.address

@@ -5,7 +5,7 @@ use {crate::state::*, crate::utils::*, anchor_lang::prelude::*};
 
 #[derive(Accounts)]
 #[instruction(name: String, collection_bump: u8, space: u16)]
-pub struct Create<'info> {
+pub struct CreateCollection<'info> {
     #[account(mut)]
     payer: Signer<'info>,
     #[account(
@@ -45,7 +45,7 @@ pub struct Create<'info> {
 }
 
 pub fn handler(
-    ctx: Context<Create>,
+    ctx: Context<CreateCollection>,
     name: String,
     collection_bump: u8,
     symbol: String,
@@ -97,7 +97,7 @@ pub fn handler(
     //update metadata w/ primary sale happened
     Ok(())
 }
-impl<'info> Create<'info> {
+impl<'info> CreateCollection<'info> {
     fn into_mint_collection_token_to_authority_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::MintTo<'info>> {

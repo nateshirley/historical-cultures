@@ -16,8 +16,8 @@ pub mod smart_collections {
         initialize::handler(ctx, smart_authority_bump)
     }
 
-    pub fn create(
-        ctx: Context<Create>,
+    pub fn create_collection(
+        ctx: Context<CreateCollection>,
         name: String,
         collection_bump: u8,
         _space: u16,
@@ -28,7 +28,7 @@ pub mod smart_collections {
         creators: Option<Vec<Creator>>,
         seller_fee_basis_points: u16,
     ) -> ProgramResult {
-        create::handler(
+        create_collection::handler(
             ctx,
             name,
             collection_bump,
@@ -41,8 +41,13 @@ pub mod smart_collections {
         )
     }
 
-    pub fn mint_into(ctx: Context<MintInto>) -> ProgramResult {
-        mint_into::handler(ctx)
+    pub fn mint_item_into_collection(
+        ctx: Context<MintItemIntoCollection>,
+        item_name: Option<String>,
+        item_symbol: Option<String>,
+        item_uri: String,
+    ) -> ProgramResult {
+        mint_item_into_collection::handler(ctx, item_name, item_symbol, item_uri)
     }
 }
 
