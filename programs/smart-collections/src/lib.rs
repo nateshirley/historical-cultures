@@ -9,6 +9,12 @@ use {instructions::*, state::*, utils::*};
 
 declare_id!("3aGWrcgYM8KPoBU2BFK97UcLFqxMspijPM3o6TgxXog1");
 
+/*
+i think my focus for right now should be to build on the anchor metadata and add master, plus get the collections in order
+so i should just stick with that for now
+and then go back to the cultures
+*/
+
 #[program]
 pub mod smart_collections {
     use super::*;

@@ -1,4 +1,5 @@
 [workspace]
 members = [
-    "programs/*"
+    "programs/smart-collections"
 ]
+exclude = ["programs/cultures"]

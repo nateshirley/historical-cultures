@@ -5,7 +5,7 @@ cultures = "54msrd3yQCZjPdPB6Fh95yp7xYq8NiWgbWm1w2WuGdSA"
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "/Users/nathanshirley/.config/solana/id.json"
 
 [scripts]

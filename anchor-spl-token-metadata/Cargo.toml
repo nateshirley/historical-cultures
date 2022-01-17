@@ -1,0 +1,13 @@
+[package]
+name = "anchor-spl-token-metadata"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anchor-lang = "0.20.1"
+spl-token-metadata = { version="0.0.1", features = [ "no-entrypoint" ] }
+borsh = "0.9.1"
+spl-token = {verstion="3.2.0"}
+anchor-spl = "0.20.1"

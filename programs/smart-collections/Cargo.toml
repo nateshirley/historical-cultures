@@ -18,4 +18,4 @@ default = []
 anchor-lang = "0.20.1"
 anchor-spl = "0.20.1"
 spl-token-metadata = "0.0.1"
-anchor-spl-token-metadata = { version = "0.1.1", options = ["cpi"] }
+anchor-spl-token-metadata = { path = "../../anchor-spl-token-metadata" }

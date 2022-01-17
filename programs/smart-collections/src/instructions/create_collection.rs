@@ -1,3 +1,4 @@
+use anchor_lang::solana_program;
 use anchor_spl::{associated_token, token};
 use anchor_spl_token_metadata::anchor_token_metadata;
 use std::convert::TryFrom;
@@ -23,7 +24,9 @@ pub struct CreateCollection<'info> {
         mint::authority = smart_authority,
     )]
     collection_mint: Account<'info, token::Mint>, //must also be signer,
+    #[account(mut)]
     collection_metadata: UncheckedAccount<'info>, //validated via cpi
+    #[account(mut)]
     collection_master_edition: UncheckedAccount<'info>, //validated via cpi
     #[account(
         init,
@@ -59,17 +62,19 @@ pub fn handler(
     let smart_collection = &mut ctx.accounts.smart_collection;
     smart_collection.name = name.clone().to_seed_format();
     smart_collection.symbol = symbol.clone();
+    smart_collection.mint = ctx.accounts.collection_mint.key();
     smart_collection.mint_authority = Some(mint_authority);
     smart_collection.max_supply = max_supply;
     smart_collection.creators = creators.clone();
     smart_collection.seller_fee_basis_points = seller_fee_basis_points;
     smart_collection.bump = collection_bump;
 
-    //mint collection token to smart authority
     let seeds = &[
         &SMART_AUTHORITY_SEED[..],
         &[ctx.accounts.smart_authority.bump],
     ];
+
+    //mint collection token to smart authority
     token::mint_to(
         ctx.accounts
             .into_mint_collection_token_to_authority_context()
@@ -78,23 +83,31 @@ pub fn handler(
     )?;
 
     //create metadata for the collection
-    // anchor_token_metadata::create_metadata(
-    //     ctx.accounts
-    //         .into_create_collection_metadata_context()
-    //         .with_signer(&[&seeds[..]]),
-    //     name.to_name_format(),
-    //     symbol,
-    //     uri,
-    //     to_metaplex_creators(creators),
-    //     0,
-    //     true,
-    //     true,
-    // )?;
-
-    //max supply zero for master edition
+    anchor_token_metadata::create_metadata_v2(
+        ctx.accounts
+            .into_create_collection_metadata_context()
+            .with_signer(&[seeds]),
+        name.to_name_format(),
+        symbol,
+        uri,
+        to_metaplex_creators(creators), //still have to fix creators issue but moving to master rn
+        0,
+        true,
+        true,
+        None,
+        None,
+    )?;
 
     //create master edition for the collection
+    anchor_token_metadata::create_master_edition_v3(
+        ctx.accounts
+            .into_create_collection_master_edition_context()
+            .with_signer(&[seeds]),
+        Some(0),
+    )?;
+
     //update metadata w/ primary sale happened
+    //todo
     Ok(())
 }
 impl<'info> CreateCollection<'info> {
@@ -111,18 +124,79 @@ impl<'info> CreateCollection<'info> {
     }
     fn into_create_collection_metadata_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, anchor_token_metadata::CreateMetadata<'info>> {
+    ) -> CpiContext<'_, '_, '_, 'info, anchor_token_metadata::CreateMetadataV2<'info>> {
         let cpi_program = self.token_metadata_program.to_account_info();
-        let cpi_accounts = anchor_token_metadata::CreateMetadata {
+        let cpi_accounts = anchor_token_metadata::CreateMetadataV2 {
             metadata: self.collection_metadata.to_account_info(),
             mint: self.collection_mint.to_account_info(),
             mint_authority: self.smart_authority.to_account_info(),
             payer: self.payer.to_account_info(),
             update_authority: self.smart_authority.to_account_info(),
             token_metadata_program: self.token_metadata_program.to_account_info(),
-            system_program: self.system_program.clone(),
-            rent: self.rent.clone(),
+            system_program: self.system_program.to_account_info(),
+            rent: self.rent.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+    fn into_create_collection_master_edition_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, anchor_token_metadata::CreateMasterEditionV3<'info>> {
+        let cpi_program = self.token_metadata_program.to_account_info();
+        let cpi_accounts = anchor_token_metadata::CreateMasterEditionV3 {
+            edition: self.collection_master_edition.to_account_info(),
+            mint: self.collection_mint.to_account_info(),
+            update_authority: self.smart_authority.to_account_info(),
+            mint_authority: self.smart_authority.to_account_info(),
+            payer: self.payer.to_account_info(),
+            metadata: self.collection_metadata.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+            token_metadata_program: self.token_metadata_program.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            rent: self.rent.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
 }
+
+// pub edition: AccountInfo<'info>,
+// pub mint: AccountInfo<'info>,
+// pub update_authority: AccountInfo<'info>,
+// pub mint_authority: AccountInfo<'info>,
+// pub payer: AccountInfo<'info>,
+// pub metadata: AccountInfo<'info>,
+// pub token_program: AccountInfo<'info>,
+// #[account(address = spl_token_metadata::id())]
+// pub token_metadata_program: AccountInfo<'info>,
+// pub system_program: AccountInfo<'info>,
+// pub rent: AccountInfo<'info>,
+
+// let ix = anchor_token_metadata::create_metadata_v2_ix(
+//     *ctx.accounts.token_metadata_program.key,
+//     *ctx.accounts.collection_metadata.key,
+//     ctx.accounts.collection_mint.key(),
+//     ctx.accounts.smart_authority.key(),
+//     ctx.accounts.payer.key(),
+//     ctx.accounts.smart_authority.key(),
+//     name.to_name_format(),
+//     symbol,
+//     uri,
+//     None,
+//     0,
+//     true,
+//     false,
+//     None,
+//     None,
+// );
+// solana_program::program::invoke_signed(
+//     &ix,
+//     &[
+//         ctx.accounts.collection_metadata.to_account_info(),
+//         ctx.accounts.collection_mint.to_account_info(),
+//         ctx.accounts.smart_authority.to_account_info(),
+//         ctx.accounts.payer.to_account_info(),
+//         ctx.accounts.smart_authority.to_account_info(),
+//         ctx.accounts.system_program.to_account_info(),
+//         ctx.accounts.rent.to_account_info(),
+//     ],
+//     &[seeds],
+// )?;
